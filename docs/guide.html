@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>punch 功能说明</title>
+<style>
+  :root {
+    --bg: #12140f;
+    --bg-2: #1b1f16;
+    --bg-3: #10140c;
+    --line: #31382a;
+    --text: #e4ecd8;
+    --dim: #8b967c;
+    --lime: #d6ff4a;
+    --lime-2: #edffb0;
+    --bad: #ff5d3a;
+    --warn: #e2b657;
+    --ok: #8dffa8;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  html, body { margin: 0; background: var(--bg); color: var(--text); }
+  body {
+    font: 15px/1.6 "Iowan Old Style", Palatino, "Palatino Linotype", "Songti SC", "Noto Serif SC", serif;
+    min-height: 100vh;
+  }
+  code, pre, .mono, nav, table, .kicker, .mark {
+    font-family: ui-monospace, "SF Mono", "Cascadia Code", Menlo, Consolas, monospace;
+  }
+  a { color: var(--lime-2); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+  a:hover { color: var(--lime); }
+  header.top {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+    padding: 14px 22px;
+    background: rgba(18, 20, 15, 0.92);
+    border-bottom: 1px solid var(--line);
+    backdrop-filter: blur(8px);
+  }
+  .mark { color: var(--lime); font-weight: 700; letter-spacing: 0.14em; font-size: 16px; }
+  .sub { color: var(--dim); font-size: 13px; }
+  .layout {
+    display: grid;
+    grid-template-columns: 220px minmax(0, 760px);
+    gap: 28px;
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 28px 22px 80px;
+  }
+  nav {
+    position: sticky;
+    top: 68px;
+    align-self: start;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    font-size: 12px;
+    line-height: 1.35;
+  }
+  nav a {
+    color: var(--dim);
+    text-decoration: none;
+    padding: 5px 8px;
+    border-left: 2px solid transparent;
+  }
+  nav a:hover, nav a.on { color: var(--lime); border-left-color: var(--lime); }
+  article h1 {
+    font: 600 28px/1.25 ui-sans-serif, system-ui, sans-serif;
+    margin: 0 0 10px;
+    letter-spacing: -0.02em;
+  }
+  .lead { color: var(--dim); margin: 0 0 22px; font-size: 17px; }
+  h2 {
+    font: 600 18px/1.3 ui-sans-serif, system-ui, sans-serif;
+    margin: 42px 0 10px;
+    color: var(--lime);
+    scroll-margin-top: 120px;
+  }
+  h3 {
+    font: 600 15px/1.4 ui-sans-serif, system-ui, sans-serif;
+    margin: 22px 0 8px;
+    color: var(--lime-2);
+  }
+  p { margin: 0 0 12px; }
+  ul, ol { margin: 0 0 14px; padding-left: 1.2em; }
+  li { margin: 4px 0; }
+  .kicker {
+    color: var(--dim);
+    letter-spacing: 0.12em;
+    font-size: 11px;
+    margin-bottom: 8px;
+  }
+  .flow {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr auto 1fr auto 1fr;
+    gap: 8px;
+    align-items: stretch;
+    margin: 16px 0 8px;
+  }
+  .node, .arrow {
+    border: 1px solid var(--line);
+    background: var(--bg-2);
+    padding: 10px 8px;
+    text-align: center;
+    font-size: 13px;
+  }
+  .node strong { display: block; color: var(--lime-2); font-weight: 600; }
+  .node span, .arrow { color: var(--dim); font-size: 12px; }
+  .arrow {
+    border: 0;
+    background: transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--lime);
+    padding: 0;
+  }
+  pre {
+    background: var(--bg-3);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--lime);
+    padding: 12px 14px;
+    overflow: auto;
+    font-size: 12.5px;
+    line-height: 1.5;
+    margin: 0 0 14px;
+  }
+  code { color: var(--lime-2); font-size: 0.92em; }
+  pre code { color: var(--text); }
+  table { width: 100%; border-collapse: collapse; margin: 0 0 16px; font-size: 13px; }
+  th, td { text-align: left; padding: 8px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { color: var(--dim); font-weight: 500; font-size: 12px; }
+  .tag {
+    display: inline-block;
+    min-width: 4.2em;
+    color: var(--bg);
+    background: var(--lime);
+    font-weight: 700;
+    font-size: 11px;
+    letter-spacing: 0.04em;
+    padding: 1px 6px;
+    margin-right: 6px;
+  }
+  .tag.post { background: var(--ok); }
+  .tag.del { background: var(--bad); color: #1a0d08; }
+  .note, .warnbox {
+    border: 1px solid var(--line);
+    background: var(--bg-2);
+    padding: 10px 12px;
+    margin: 0 0 14px;
+    font-size: 14px;
+  }
+  .warnbox { border-color: #5c4a28; }
+  .warnbox strong { color: var(--warn); }
+  .ok { color: var(--ok); }
+  .bad { color: var(--bad); }
+  .dim { color: var(--dim); }
+  @media (max-width: 860px) {
+    .layout { grid-template-columns: 1fr; padding-top: 16px; }
+    nav {
+      position: sticky;
+      top: 49px;
+      flex-direction: row;
+      overflow: auto;
+      background: rgba(18, 20, 15, 0.94);
+      border-bottom: 1px solid var(--line);
+      margin: 0 -22px;
+      padding: 8px 14px;
+      z-index: 1;
+    }
+    nav a { white-space: nowrap; border-left: 0; border-bottom: 2px solid transparent; }
+    nav a.on { border-bottom-color: var(--lime); }
+    .flow { grid-template-columns: 1fr; }
+    .arrow { transform: rotate(90deg); padding: 2px 0; }
+    header.top { flex-wrap: wrap; }
+  }
+  @media print {
+    header.top, nav { display: none; }
+    body { background: white; color: black; }
+    .layout { display: block; max-width: none; }
+    a { color: black; }
+    pre, .node, .note, .warnbox { border-color: #ccc; background: #f6f6f6; }
+    h2, .mark, code { color: black; }
+  }
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="mark">PUNCH</div>
+  <div class="sub">功能说明</div>
+</header>
+<div class="layout">
+<nav>
+  <a href="#what">它做什么</a>
+  <a href="#start">跑起来</a>
+  <a href="#path">数据怎么走</a>
+  <a href="#map">端口映射</a>
+  <a href="#config">配置文件</a>
+  <a href="#client">客户端</a>
+  <a href="#web">管理页</a>
+  <a href="#api">HTTP 接口</a>
+  <a href="#fail">失败上报</a>
+  <a href="#bench">压测</a>
+  <a href="#deploy">部署</a>
+  <a href="#extend">加接口</a>
+</nav>
+<article>
+  <div class="kicker">REVERSE TCP TUNNEL</div>
+  <h1>punch 功能说明</h1>
+  <p class="lead">一个二进制里的服务端和客户端。客户端主动连出去，服务端把收到的 TCP 交给客户端，由客户端去拨它能访问的地址。</p>
+
+  <h2 id="what">它做什么</h2>
+  <p>用法和 nps 同一类。内网机器运行客户端，公网机器运行服务端。访问服务端上的一个端口，流量会从已经建好的隧道进到客户端，再由客户端连到目标 IP 和端口。</p>
+  <ul>
+    <li>服务端可以监听 <code>0.0.0.0</code>（对外）或 <code>127.0.0.1</code>（只本机）。控制端口、数据端口、管理页、每一条映射都可以单独选。</li>
+    <li>目标不限于客户端本机。客户端能解析、能连上的地址都可以，例如 <code>10.0.0.8:80</code>、<code>192.168.1.9:22</code>。</li>
+    <li>映射可以用客户端命令行登记，也可以用服务端的 HTTPS 接口开。两边共用同一把 api key。</li>
+    <li>客户端拨目标失败时，原因会回到服务端，管理页和 <code>/api/events</code> 都能看到。</li>
+  </ul>
+
+  <h2 id="start">跑起来</h2>
+  <p>发布二进制是 <code>target/release/punch</code>。第一次执行服务端时，当前目录没有 <code>punch-server.yaml</code> 就会生成配置，并写一份自签名证书。终端会打出 api key，只在生成那一次出现。</p>
+  <pre><code>punch server
+punch client --server 127.0.0.1:8024 --key &lt;api_key&gt; \
+  --map 0.0.0.0:18080=10.0.0.8:80</code></pre>
+  <p>然后访问 <code>http://&lt;服务端&gt;:18080</code>，连接会到客户端能访问的 <code>10.0.0.8:80</code>。管理页是 <code>https://&lt;服务端&gt;:8443/</code>，证书域名是 <code>localhost</code>，浏览器需要信任这张自签名证书。</p>
+  <div class="note">默认端口：控制 <code>0.0.0.0:8024</code>，数据 <code>0.0.0.0:8025</code>，管理页 <code>0.0.0.0:8443</code>。客户端连的是控制端口。数据端口由服务端在握手里告诉客户端，客户端用同一台机器的地址去连。</div>
+
+  <h2 id="path">数据怎么走</h2>
+  <div class="flow">
+    <div class="node"><strong>访问方</strong><span>连服务端映射端口</span></div>
+    <div class="arrow">→</div>
+    <div class="node"><strong>服务端</strong><span>接受公网 TCP</span></div>
+    <div class="arrow">→</div>
+    <div class="node"><strong>客户端</strong><span>已有的数据连接</span></div>
+    <div class="arrow">→</div>
+    <div class="node"><strong>目标</strong><span>客户端能访问的 host:port</span></div>
+  </div>
+  <p>有两条 TCP，都是客户端向外拨号：</p>
+  <ul>
+    <li><strong>控制连接</strong>用来登记映射、心跳、下发「开一条流」。大约 15 秒一次心跳，45 秒没有读到数据就断开并重连。</li>
+    <li><strong>数据连接</strong>只搬字节。服务端按配置预留一批空闲连接，新进来的访问优先用空闲的那条，省掉当场再拨号。</li>
+  </ul>
+  <p>Linux 上接入用 epoll，两个 TCP 之间用 splice，字节留在内核里。其他 Unix（包括 macOS）用系统的事件接口，在用户态拷贝。启动服务端时会打印当前模式，<code>/api/ping</code> 的 <code>io</code> 字段也是这个值：Linux 上是 <code>epoll+splice</code>，macOS 上是 <code>kqueue+copy</code>。</p>
+  <p>每条接受或拨出的 TCP 都会打开 <code>TCP_NODELAY</code>，发送和接收缓冲默认 4MB，并打开 keepalive。进程会尽量把可打开文件数抬到 100 万（不超过系统硬限制）。</p>
+
+  <h2 id="map">端口映射</h2>
+  <h3>客户端命令行</h3>
+  <p><code>--map</code> 可以写多次。等号左边是服务端要监听的地址，右边是客户端要拨的目标。</p>
+  <pre><code>punch client --server 10.0.0.1:8024 --key KEY --name edge \
+  --map 0.0.0.0:8080=10.0.0.8:80 \
+  --map 127.0.0.1:2222=192.168.1.9:22</code></pre>
+  <ul>
+    <li><code>--name</code> 省略时用本机主机名。服务端按这个名字把映射交给对应的客户端。</li>
+    <li>命令行映射在客户端重连时会按原样再登记一次。同一条（同一个客户端、同一个监听地址）不会重复绑端口，只会更新目标。</li>
+    <li>客户端换了一批 <code>--map</code> 再连上来时，这个名字下没再出现的命令行映射会被关掉。用接口开的映射会留着。</li>
+  </ul>
+  <h3>服务端接口</h3>
+  <p>客户端在线时，可以用管理页或下面的请求增加一条。客户端当时不在线也可以先开：监听先起来，等这个名字的客户端回来再开始转发。</p>
+  <pre><code>curl -k -H "X-Api-Key: KEY" -H "Content-Type: application/json" \
+  -d '{"client_name":"edge","bind":"0.0.0.0:18080","target":"10.0.0.8:80"}' \
+  https://127.0.0.1:8443/api/mappings</code></pre>
+  <p>成功是 HTTP 201。正文里有映射 id、实际绑定的 <code>bind</code>、<code>target</code>。目标当时拨不通时，映射仍然保留，<code>warning</code> 里是原因。监听地址绑不上（端口被占用、地址不合法）是 HTTP 400，事件类型是 <code>bind_fail</code>。</p>
+  <p><code>bind</code> 必须是 <code>ip:port</code>，不能写域名。端口可以是 <code>0</code>，表示由系统分配，实际端口在响应和管理页里。同一 IP 上，非 0 端口不能和已有映射冲突。</p>
+
+  <h2 id="config">配置文件</h2>
+  <p>默认读 <code>./punch-server.yaml</code>，用 <code>punch server -c FILE</code> 换路径。文件不存在就生成。相对路径的证书按 yaml 所在目录解析。只支持这种两层结构：顶层键、缩进一层的段落、<code>#</code> 注释、引号字符串。</p>
+  <pre><code>control_listen: "0.0.0.0:8024"
+data_listen: "0.0.0.0:8025"
+api_key: "至少 8 个字符"
+
+web:
+  listen: "0.0.0.0:8443"
+  cert: "certs/cert.pem"
+  key: "certs/key.pem"
+
+tcp:
+  nodelay: true
+  recv_buffer: 4194304
+  send_buffer: 4194304
+  pipe_size: 262144
+  backlog: 4096
+
+pool:
+  idle: 16
+  max_idle: 64</code></pre>
+  <table>
+    <thead><tr><th>字段</th><th>作用</th></tr></thead>
+    <tbody>
+      <tr><td><code>control_listen</code></td><td>客户端连入的控制端口。</td></tr>
+      <tr><td><code>data_listen</code></td><td>数据连接端口。客户端使用握手里返回的实际端口。</td></tr>
+      <tr><td><code>api_key</code></td><td>客户端 <code>--key</code> 和管理接口共用，去掉首尾空白后至少 8 个字符。</td></tr>
+      <tr><td><code>web.listen</code></td><td>HTTPS 管理页。</td></tr>
+      <tr><td><code>web.cert</code> / <code>web.key</code></td><td>nginx 那两份 PEM：<code>ssl_certificate</code> 和 <code>ssl_certificate_key</code>。</td></tr>
+      <tr><td><code>tcp.pipe_size</code></td><td>Linux splice 用的管道容量，限制在 64KB 到 4MB。越大单连接越不容易被管道堵住，内核内存也越高。</td></tr>
+      <tr><td><code>tcp.backlog</code></td><td>监听队列，限制在 128 到 65535。</td></tr>
+      <tr><td><code>pool.idle</code></td><td>每个客户端保持的空闲数据连接数，至少 1。</td></tr>
+      <tr><td><code>pool.max_idle</code></td><td>空闲连接上限。客户端 <code>--pool</code> 不能超过它。</td></tr>
+    </tbody>
+  </table>
+  <p>两份证书必须同时有，或同时没有。都没有时，启动会调用本机 <code>openssl</code> 生成一张 10 年的自签名证书，SAN 是 <code>DNS:localhost</code> 和 <code>IP:127.0.0.1</code>。只有其中一个文件时，启动直接失败，避免盖掉你已经放好的那一半。</p>
+
+  <h2 id="client">客户端</h2>
+  <table>
+    <thead><tr><th>参数</th><th>作用</th></tr></thead>
+    <tbody>
+      <tr><td><code>-s, --server HOST:PORT</code></td><td>服务端控制地址。可以是 IP，也可以是能解析的域名。</td></tr>
+      <tr><td><code>-k, --key KEY</code></td><td>配置里的 <code>api_key</code>。</td></tr>
+      <tr><td><code>-n, --name NAME</code></td><td>客户端名字，1 到 64 字节。默认主机名。同名新连接会替换旧会话。</td></tr>
+      <tr><td><code>-m, --map BIND=TARGET</code></td><td>可重复。BIND 是 <code>ip:port</code>，TARGET 是 <code>host:port</code>。</td></tr>
+      <tr><td><code>--bench ADDR</code></td><td>在客户端开一个明文 HTTP，用来压测隧道。</td></tr>
+      <tr><td><code>--expose-bench BIND</code></td><td>把上面的 HTTP 映射到服务端的 BIND。需要同时写 <code>--bench</code>。</td></tr>
+      <tr><td><code>--pool N</code></td><td>预连接数量。省略则用服务端通告的 <code>pool.idle</code>，并且不会超过 <code>max_idle</code>。</td></tr>
+    </tbody>
+  </table>
+  <p>控制连接断开后，客户端会从 1 秒开始重试，最长间隔 15 秒。日志用环境变量 <code>RUST_LOG=debug</code> 打到标准错误，可选 <code>error</code>、<code>warn</code>、<code>info</code>、<code>debug</code>。</p>
+
+  <h2 id="web">管理页</h2>
+  <p>页面编译进二进制，部署时不带额外文件。打开 <code>https://&lt;主机&gt;:8443/</code>，输入 api key。密钥只放在这个标签页的 <code>sessionStorage</code> 里。页面每 2 秒拉一次总览、客户端、映射和事件。</p>
+  <ul>
+    <li>映射表里，目标正常是绿色，客户端不在线是黄色，最近一次错误是红色。</li>
+    <li>开映射时，监听 IP 选 <code>0.0.0.0</code> 或 <code>127.0.0.1</code>，再填端口和 <code>host:port</code> 目标。</li>
+    <li><code>/</code>、<code>/healthz</code>、<code>/favicon.ico</code> 不需要密钥。<code>/healthz</code> 返回 <code>ok</code>。</li>
+  </ul>
+  <div class="warnbox"><strong>证书。</strong>管理页用系统 OpenSSL 读 PEM，和 nginx 同一套：证书链文件加私钥文件。私钥可以是 <code>PRIVATE KEY</code>、<code>RSA PRIVATE KEY</code> 或 <code>EC PRIVATE KEY</code>。换证书时改 yaml 里的路径，两份文件都放好，然后重启服务端。</div>
+
+  <h2 id="api">HTTP 接口</h2>
+  <p><code>/api/</code> 下面都要带密钥，请求头用 <code>X-Api-Key</code>，或 <code>Authorization: Bearer &lt;key&gt;</code>。密钥不对是 401。比较是按字节进行的。</p>
+  <table>
+    <thead><tr><th>方法</th><th>路径</th><th>返回</th></tr></thead>
+    <tbody>
+      <tr><td><span class="tag">GET</span></td><td><code>/api/ping</code></td><td><code>pong</code> 和当前 <code>io</code> 模式。用来确认接口和数据面。</td></tr>
+      <tr><td><span class="tag">GET</span></td><td><code>/api/overview</code></td><td>客户端数、映射数、正在转发的连接数、<code>bytes_in</code> / <code>bytes_out</code>、三个监听地址、运行毫秒数。</td></tr>
+      <tr><td><span class="tag">GET</span></td><td><code>/api/clients</code></td><td>在线客户端：<code>id</code>、<code>name</code>、<code>addr</code>、<code>connected_ms</code>、空闲数据连接数 <code>pool_idle</code>。</td></tr>
+      <tr><td><span class="tag">GET</span></td><td><code>/api/mappings</code></td><td>每条映射的 bind、target、来源 <code>cli</code> 或 <code>api</code>、客户端是否在线、活跃连接、accept 次数、流量、<code>fail_count</code>、<code>last_error</code>。</td></tr>
+      <tr><td><span class="tag post">POST</span></td><td><code>/api/mappings</code></td><td>正文 <code>{"client_name","bind","target"}</code>。201 时带 <code>id</code>、<code>bind</code>、<code>target</code>，可能有 <code>warning</code>。</td></tr>
+      <tr><td><span class="tag del">DELETE</span></td><td><code>/api/mappings/:id</code></td><td>关掉监听，并通知在线客户端删掉这条。不存在是 404。</td></tr>
+      <tr><td><span class="tag">GET</span></td><td><code>/api/events</code></td><td>最近 200 条，新的在前。字段是 <code>ts_ms</code>、<code>kind</code>、<code>client_name</code>、<code>map_id</code>、<code>message</code>。</td></tr>
+    </tbody>
+  </table>
+  <p>事件 <code>kind</code> 有这些：<code>client_online</code>、<code>client_offline</code>、<code>bind_fail</code>、<code>listen_fail</code>、<code>target_error</code>。</p>
+
+  <h2 id="fail">失败上报</h2>
+  <p>客户端在登记映射之后会先试拨目标，大约等 500 毫秒。连接被拒绝（对端没有 listen）时，消息以 <code>listen failed:</code> 开头，映射留在服务端，<code>last_error</code> 写成这句，事件类型是 <code>listen_fail</code>。其他拨号错误（域名失败、超时、网络不可达）记成 <code>target unreachable:</code>，事件类型是 <code>target_error</code>。</p>
+  <p>真正有访问进来、空闲连接或新数据连接上去拨目标时，同样的失败也会写回。同一条错误在 5 秒内不重复记事件，<code>fail_count</code> 每次都会加。内容变了会立刻再记一条。命令行映射被客户端重新登记时，<code>last_error</code> 会清掉。接口下发的映射如果客户端探测成功，也会清掉。</p>
+  <p>用接口创建时，探测失败不会把映射删掉。201 的 <code>warning</code> 就是客户端回的那句话，客户端不在线或 2 秒内没确认时，<code>warning</code> 是 <code>client offline</code> 或 <code>client ack timeout</code>。</p>
+
+  <h2 id="bench">压测</h2>
+  <p>客户端上的 <code>--bench</code> 是一个专门用来把隧道打满的明文 HTTP，不经过管理页的 TLS。</p>
+  <pre><code>punch client --server 10.0.0.1:8024 --key KEY \
+  --bench 127.0.0.1:19090 --expose-bench 0.0.0.0:18080
+
+wrk -t4 -c256 -d30s http://10.0.0.1:18080/bench?size=1048576</code></pre>
+  <ul>
+    <li><code>GET /bench?size=N</code>、<code>GET /</code>、<code>GET /io</code>：按块吐出 N 字节，默认 64KB，最大 32MB。内容是重复的 <code>0xA5</code>。响应头有 <code>X-Punch-Bench: 1</code>。</li>
+    <li><code>POST /bench</code> 或 <code>POST /io</code>：把请求体读完，返回 <code>{"bytes":N}</code>，用来测反方向。</li>
+    <li><code>GET /health</code>：返回 <code>ok</code>。</li>
+  </ul>
+  <p><code>--bench</code> 的地址如果是 <code>0.0.0.0</code> 或 <code>::</code>，暴露到服务端时，客户端实际拨的是 <code>127.0.0.1</code> 或 <code>::1</code> 上的那个端口。</p>
+  <p>要把吞吐打满，把系统的 <code>net.core.rmem_max</code> 和 <code>net.core.wmem_max</code> 调到不小于配置里的 4MB 缓冲。Linux 上还可以按连接加大 <code>tcp.pipe_size</code>。</p>
+
+  <h2 id="deploy">部署</h2>
+  <p>业务是一个文件：<code>punch server</code> 和 <code>punch client</code> 都在里面，管理页也在里面。HTTPS 在运行时链接系统的 OpenSSL，所以机器上要有 <code>libssl</code>（OpenSSL 3，装了 nginx 的系统通常已经有）。证书继续用 nginx 的那两份 PEM，不必换格式。</p>
+  <p>在 Linux 上编译出来的程序走 epoll 和 splice。在 macOS 上编译出来的程序功能相同，数据面是用户态拷贝。</p>
+
+  <h2 id="extend">加一个管理接口</h2>
+  <p>路由表在 <code>src/admin.rs</code> 的 <code>routes()</code>。加两处：</p>
+  <ol>
+    <li>写 <code>async fn my_api(app: Arc&lt;App&gt;, req: Request) -&gt; Response</code>。</li>
+    <li>在 <code>routes()</code> 里加一行，例如 <code>Route::get("/api/my-api", my_api)</code>。也有 <code>Route::post</code> 和 <code>Route::delete</code>。</li>
+  </ol>
+  <p>路径写成 <code>/api/...</code> 就会自动检查 api key。路径里的 <code>:id</code> 用 <code>req.param("id")</code> 取，目前一段路径只支持一个这种参数。返回用 <code>Response::json</code> 或 <code>Response::err</code>。</p>
+</article>
+</div>
+<script>
+  var links = Array.prototype.slice.call(document.querySelectorAll("nav a"));
+  var sections = links.map(function (a) {
+    return document.querySelector(a.getAttribute("href"));
+  });
+  function mark() {
+    var y = window.scrollY + 90;
+    var current = 0;
+    sections.forEach(function (el, i) {
+      if (el && el.offsetTop <= y) current = i;
+    });
+    links.forEach(function (a, i) {
+      a.classList.toggle("on", i === current);
+    });
+  }
+  document.addEventListener("scroll", mark, { passive: true });
+  mark();
+</script>
+</body>
+</html>

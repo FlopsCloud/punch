@@ -1,0 +1,25 @@
+[package]
+name = "punch"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.73"
+description = "High-performance reverse TCP tunnel with an embedded HTTPS admin"
+license = "MIT"
+build = "build.rs"
+
+[dependencies]
+tokio = { version = "=1.51.1", features = ["rt-multi-thread", "macros", "net", "io-util", "sync", "time", "signal"] }
+serde = { version = "=1.0.228", features = ["derive"] }
+serde_json = "=1.0.149"
+socket2 = "=0.5.5"
+anyhow = "=1.0.75"
+libc = "=0.2.184"
+
+[dev-dependencies]
+tokio = { version = "=1.51.1", features = ["rt-multi-thread", "macros", "net", "io-util", "sync", "time"] }
+anyhow = "=1.0.75"
+
+[profile.release]
+lto = "thin"
+codegen-units = 1
+opt-level = 3
